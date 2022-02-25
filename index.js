@@ -39,5 +39,5 @@ const apiHandler = async (req, res) => {
 
 express()
   .get("/", homeHandler)
-  .get("/api/6a095a", apiHandler)
+  .get("/api/l33t", apiHandler)
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
