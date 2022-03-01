@@ -12,14 +12,12 @@ const PORT = process.env.PORT || 5000;
 
 /** API handlers */
 
-const homeHandler = async (req, res) => res.json({ home: true });
-
 const apiHandler = async (req, res) => {
   let client;
 
   try {
     client = await pool.connect();
-    const result = await client.query("SELECT * FROM test_table");
+    const result = await client.query("SELECT * FROM all_calls");
     const results = { results: result ? result.rows : null };
     res.json(results);
   } catch (err) {
@@ -38,6 +36,5 @@ const apiHandler = async (req, res) => {
 /** App */
 
 express()
-  .get("/", homeHandler)
   .get("/api/l33t", apiHandler)
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
