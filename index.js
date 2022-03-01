@@ -17,8 +17,8 @@ const apiHandler = async (req, res) => {
 
   try {
     client = await pool.connect();
-    const result = await client.query("SELECT * FROM all_calls");
-    const results = { results: result ? result.rows : null };
+    const result = await client.query("SELECT * FROM all_calls WHERE received_on_date = NOW()::date");
+    const results = { results: result ? result.rows : [] };
     res.json(results);
   } catch (err) {
     console.error(err);
