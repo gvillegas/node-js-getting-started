@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 5000;
 
 /** API handlers */
 
+const buildErrorJson = (message) => ({ error: message });
+
 const dailyCallsApiHandler = async (req, res) => {
   let client;
 
@@ -22,13 +24,15 @@ const dailyCallsApiHandler = async (req, res) => {
       TO_CHAR(ac.received_on_date, 'yyyy-MM-dd') as received_on_date, ac.received_on_time 
       FROM all_calls ac 
       WHERE received_on_date = (NOW() at time zone 'EST')::date`;
-      
+
     const result = await client.query(sql);
-    const responseBody = { results: result ? result.rows : [] };
+    const responseBody = { calls: result ? result.rows : [] };
     res.json(responseBody);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Request cannot be handled, please retry later");
+    res
+      .status(500)
+      .json(buildErrorJson("request cannot be handled, please retry later"));
   } finally {
     try {
       client.release();
@@ -42,7 +46,9 @@ const countriesApiHandler = async (req, res) => {
   const { phoneCode } = req.params;
 
   if (!phoneCode) {
-    return res.status(400).send("Country's phone code is required");
+    return res
+      .status(400)
+      .json(buildErrorJson("country's phone code is required"));
   }
 
   let client;
@@ -51,19 +57,23 @@ const countriesApiHandler = async (req, res) => {
     client = await pool.connect();
     const sql = "SELECT c.phonecode, c.nicename FROM countries c WHERE c.phonecode::text = $1";
     const result = await client.query(sql, [phoneCode]);
-    let responseBody;
+    let countries;
 
     if (result && result.rows && result.rows.length) {
-      const { phonecode, nicename } = result.rows[0];
-      responseBody = { code: phonecode, name: nicename };
+      countries = results.rows.map((row) => {
+        const { phonecode, nicename } = row;
+        return { code: phonecode, name: nicename };
+      });
     } else {
-      return res.status(404).send("Country code not found");
+      return res.status(404).json(buildErrorJson("country not found"));
     }
 
-    res.json(responseBody);
+    res.json({ results: countries });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Request cannot be handled, please retry later");
+    res
+      .status(500)
+      .json(buildErrorJson("request cannot be handled, please retry later"));
   } finally {
     try {
       client.release();
