@@ -60,7 +60,7 @@ const countriesApiHandler = async (req, res) => {
     let countries;
 
     if (result && result.rows && result.rows.length) {
-      countries = results.rows.map((row) => {
+      countries = result.rows.map((row) => {
         const { phonecode, nicename } = row;
         return { code: phonecode, name: nicename };
       });
