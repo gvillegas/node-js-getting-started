@@ -68,7 +68,7 @@ const countriesApiHandler = async (req, res) => {
       return res.status(404).json(buildErrorJson("country not found"));
     }
 
-    res.json({ results: countries });
+    res.json({ countries });
   } catch (err) {
     console.error(err);
     res
