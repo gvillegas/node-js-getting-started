@@ -83,9 +83,43 @@ const countriesApiHandler = async (req, res) => {
   }
 };
 
+const countriesJsonApiHandler = async (req, res) => {
+  let client;
+
+  try {
+    client = await pool.connect();
+    const sql = "SELECT c.phonecode, c.nicename FROM countries c ORDER BY c.nicename";
+    const result = await client.query(sql);
+    let countries;
+
+    if (result && result.rows && result.rows.length) {
+      countries = result.rows.map((row) => {
+        const { phonecode, nicename } = row;
+        return { code: phonecode, name: nicename };
+      });
+    } else {
+      return res.status(404).json(buildErrorJson("country not found"));
+    }
+
+    res.json({ countries });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json(buildErrorJson("request cannot be handled, please retry later"));
+  } finally {
+    try {
+      client.release();
+    } catch (e) {
+      // close quietly
+    }
+  }
+};
+
 /** App */
 
 express()
   .get("/api/calls/daily", dailyCallsApiHandler)
-  .get("/api/countries/:phoneCode", countriesApiHandler)
+  .get("/api/countries/:phoneCode([0-9]+)", countriesApiHandler)
+  .get("/api/countries/json", countriesJsonApiHandler)
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
